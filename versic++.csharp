@@ -1,0 +1,129 @@
+#include <iostream>
+#include <string>
+#include <vector>
+using namespace std;
+
+// Kelas dasar abstrak untuk Produk
+class Produk {
+protected:  // Protected agar bisa diakses oleh kelas turunan
+    string kode;
+    string nama;
+    double harga;
+
+public:
+    // Constructor
+    Produk(string kode, string nama, double harga) {
+        this->kode = kode;
+        this->nama = nama;
+        this->harga = harga;
+    }
+
+    // Method virtual untuk dioverride oleh kelas turunan
+    virtual string get_info() {
+        return "Kode: " + kode + ", Nama: " + nama + ", Harga: Rp" + to_string((int)harga);
+    }
+
+    // Method pure virtual (abstrak) untuk diskon
+    virtual double hitung_diskon() = 0;  // = 0 membuat method menjadi pure virtual
+};
+
+// Kelas Elektronik turunan dari Produk
+class Elektronik : public Produk {
+private:
+    string merk;
+    int garansi;
+
+public:
+    // Constructor
+    Elektronik(string kode, string nama, double harga, string merk, int garansi)
+        : Produk(kode, nama, harga) {
+        this->merk = merk;
+        this->garansi = garansi;
+    }
+
+    // Override method get_info
+    string get_info() override {
+        return Produk::get_info() + ", Merk: " + merk + ", Garansi: " + 
+               to_string(garansi) + " tahun";
+    }
+
+    // Override method hitung_diskon
+    double hitung_diskon() override {
+        return harga * 0.1;  // Diskon 10%
+    }
+};
+
+// Kelas Makanan turunan dari Produk
+class Makanan : public Produk {
+private:
+    string tanggal_kadaluarsa;
+
+public:
+    // Constructor
+    Makanan(string kode, string nama, double harga, string tanggal_kadaluarsa)
+        : Produk(kode, nama, harga) {
+        this->tanggal_kadaluarsa = tanggal_kadaluarsa;
+    }
+
+    // Override method get_info
+    string get_info() override {
+        return Produk::get_info() + ", Kadaluarsa: " + tanggal_kadaluarsa;
+    }
+
+    // Override method hitung_diskon
+    double hitung_diskon() override {
+        return harga * 0.05;  // Diskon 5%
+    }
+};
+
+// Kelas untuk mengelola inventaris
+class InventarisGudang {
+private:
+    vector<Produk*> daftar_produk;  // Vector untuk menyimpan pointer ke Produk
+
+public:
+    // Method untuk menambah produk
+    void tambah_produk(Produk* produk) {
+        daftar_produk.push_back(produk);
+    }
+
+    // Method untuk menampilkan inventaris
+    void tampilkan_inventaris() {
+        cout << "=== INVENTARIS GUDANG ===" << endl;
+        for (Produk* produk : daftar_produk) {
+            cout << produk->get_info() << endl;
+            cout << "Diskon: Rp" << produk->hitung_diskon() << endl;
+            cout << "---" << endl;
+        }
+    }
+
+    // Destructor untuk membersihkan memori
+    ~InventarisGudang() {
+        for (Produk* produk : daftar_produk) {
+            delete produk;
+        }
+    }
+};
+
+// Fungsi main
+int main() {
+    // Membuat objek inventaris
+    InventarisGudang gudang;
+
+    // Membuat produk-produk
+    Elektronik* laptop = new Elektronik("E001", "Laptop Gaming", 15000000, "ASUS", 2);
+    Elektronik* smartphone = new Elektronik("E002", "Smartphone", 8000000, "Samsung", 1);
+    Makanan* roti = new Makanan("M001", "Roti Tawar", 20000, "2024-12-31");
+    Makanan* keju = new Makanan("M002", "Keju Cheddar", 50000, "2024-06-30");
+
+    // Menambahkan produk ke inventaris
+    gudang.tambah_produk(laptop);
+    gudang.tambah_produk(smartphone);
+    gudang.tambah_produk(roti);
+    gudang.tambah_produk(keju);
+
+    // Menampilkan inventaris
+    gudang.tampilkan_inventaris();
+
+    return 0;
+}
